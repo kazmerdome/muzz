@@ -1,0 +1,13 @@
+version: "2"
+sql:
+- name: decision
+  schema: "./db/migration"
+  queries: "./internal/module/decision/decision-querier"
+  engine: "postgresql"
+  gen:
+    go: 
+      package: "decisionQuerier"
+      out: "internal/module/decision/decision-querier"
+      emit_interface: true
+  rules:
+    - sqlc/db-prepare

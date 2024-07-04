@@ -1,0 +1,46 @@
+version: "3.8"
+
+services:
+  gateway:
+    build: .
+    image: gateway
+    environment:
+      - POSTGRES_URI=postgresql://muzz:muzz@database:5432
+      - POSTGRES_DATABASE=muzz
+      - POSTGRES_IS_SSL_DISABLED=true
+    ports:
+      - "4445:4444"
+    networks:
+      - muzz
+
+  database:
+    image: postgres:14-alpine
+    environment:
+      - POSTGRES_USER=muzz
+      - POSTGRES_PASSWORD=muzz
+      - POSTGRES_DB=muzz
+    ports:
+      - "5432:5432"
+    volumes:
+      - "./db:/db"
+    networks:
+      - muzz
+
+  migrate:
+    image: migrate/migrate
+    volumes:
+      - ./db/migration:/migration
+    depends_on:
+      - database
+    working_dir: /migration
+    networks:
+      - muzz 
+    entrypoint: >
+      /bin/sh -c "
+      sleep 3 &&
+      ls &&
+      migrate -path=/migration -database=postgres://muzz:muzz@database:5432/muzz?sslmode=disable  --verbose up "";
+      "
+
+networks:
+  muzz:
